@@ -6,6 +6,7 @@ import net.gpu.grouterbe.db.LlmEntity;
 import net.gpu.grouterbe.db.LlmRepository;
 import net.gpu.grouterbe.dto.ChatRequest;
 import net.gpu.grouterbe.dto.ChatResponse;
+import net.gpu.grouterbe.exception.ChatException;
 import net.gpu.grouterbe.exception.LlmException;
 import net.gpu.grouterbe.feign.LlmRouterClient;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,14 @@ public class LlmController {
             request.put("base_url", requestedLlm.getBaseUrl());
 
             log.info("Request body - D2LLM: {}", request);
-            ChatResponse chatResponse = llmRouterClient.askD2llm(request);
+            ChatResponse chatResponse = new ChatResponse();
+            try {
+                chatResponse = llmRouterClient.askD2llm(request);
+            } catch (ChatException e) {
+                log.error(e.getMessage());
+            }
+            String refinedResponse = chatResponse.getResponse().replaceAll("\\n", System.lineSeparator());
+            chatResponse.setResponse(refinedResponse);
             return ResponseEntity.ok(chatResponse);
 
         } else {
@@ -60,9 +68,18 @@ public class LlmController {
             request.put("query", chatRequest.getQuery());
 
             log.info("Request body - router: {}", request);
-            ChatResponse chatResponse = llmRouterClient.ask(request);
+            ChatResponse chatResponse = new ChatResponse();
+            try {
+                chatResponse = llmRouterClient.ask(request);
+            } catch (ChatException e) {
+                log.error(e.getMessage());
+            }
 
+            String refinedResponse = chatResponse.getResponse().replaceAll("\\n", System.lineSeparator());
+            chatResponse.setResponse(refinedResponse);
             return ResponseEntity.ok(chatResponse);
+
+
         }
 
     }
