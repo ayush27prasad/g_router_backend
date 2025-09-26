@@ -66,6 +66,7 @@ public class LlmController {
         } else {
             Map<String, String> request = new HashMap<>();
             request.put("query", chatRequest.getQuery());
+            request.put("session_id", "conv-1234"); // TODO : make this dynamic, based on user/session
 
             log.info("Request body - router: {}", request);
             ChatResponse chatResponse = new ChatResponse();
